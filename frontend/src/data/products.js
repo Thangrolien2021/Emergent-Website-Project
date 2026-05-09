@@ -68,8 +68,23 @@ export const PRODUCTS = [
   { id: "wa-2", design: "Welcome to America", type: "Classic Pullover Hoodie", price: 40.99, image: img("DWMR30UMIwn1HlT_jpR1XGe5Qmw"), url: "https://my-store-fa717a.creator-spring.com/listing/welcome-to-america-august-2024?product=212&variation=5832", colors:["Heather","Black","Purple","Navy","Forest"], categories:["vintage","streetwear"] },
 ];
 
-export const getProductsByCategory = (slug) =>
-  slug === "all" ? PRODUCTS : PRODUCTS.filter(p => p.categories.includes(slug));
+// Round-robin interleave by design so the "All" view shows variety,
+// not 11 same-design tees in a row.
+const interleaveByDesign = (list) => {
+  const buckets = {};
+  list.forEach(p => { (buckets[p.design] ||= []).push(p); });
+  const queues = Object.values(buckets);
+  const out = [];
+  while (queues.some(q => q.length)) {
+    queues.forEach(q => q.length && out.push(q.shift()));
+  }
+  return out;
+};
+
+export const getProductsByCategory = (slug) => {
+  if (slug === "all") return interleaveByDesign(PRODUCTS);
+  return interleaveByDesign(PRODUCTS.filter(p => p.categories.includes(slug)));
+};
 
 export const getDesigns = () => {
   const seen = new Set();

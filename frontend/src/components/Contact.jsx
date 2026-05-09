@@ -1,34 +1,37 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useRef } from "react";
+import emailjs from "@emailjs/browser";
 import { toast } from "sonner";
 import { Mail, Send, Loader2 } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const SERVICE_ID  = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY  = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
 
 export default function Contact() {
-  const [form, setForm] = useState({ name:"", email:"", subject:"", message:"" });
+  const formRef = useRef(null);
+  const [form, setForm] = useState({ from_name:"", reply_to:"", subject:"", message:"" });
   const [loading, setLoading] = useState(false);
 
   const update = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.message) {
+    if (!form.from_name || !form.reply_to || !form.message) {
       toast.error("Please fill name, email and message.");
+      return;
+    }
+    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+      toast.error("Email service not configured. Add EmailJS keys to frontend/.env.");
       return;
     }
     setLoading(true);
     try {
-      const r = await axios.post(`${API}/contact`, form);
-      if (r.data?.status === "success") {
-        toast.success("Message sent. We'll be in touch.");
-        setForm({ name:"", email:"", subject:"", message:"" });
-      } else {
-        toast.error(r.data?.message || "Something went wrong.");
-      }
+      await emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, formRef.current, { publicKey: PUBLIC_KEY });
+      toast.success("Message sent. We'll be in touch.");
+      setForm({ from_name:"", reply_to:"", subject:"", message:"" });
     } catch (err) {
-      const msg = err?.response?.data?.detail || "Failed to send. Please try again.";
-      toast.error(typeof msg === "string" ? msg : "Failed to send.");
+      const msg = err?.text || err?.message || "Failed to send. Please try again.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -50,33 +53,37 @@ export default function Contact() {
           </a>
         </div>
 
-        <form onSubmit={onSubmit} className="lg:col-span-3 space-y-4 p-6 lg:p-8 rounded-sm border border-border bg-card" data-testid="contact-form">
+        <form ref={formRef} onSubmit={onSubmit} className="lg:col-span-3 space-y-4 p-6 lg:p-8 rounded-sm border border-border bg-card" data-testid="contact-form">
+          {/* Hidden helpers so EmailJS template can use {{to_email}} / {{form_type}} */}
+          <input type="hidden" name="to_email"  value="juliantees2026@gmail.com" />
+          <input type="hidden" name="form_type" value="Contact form" />
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold uppercase tracking-widest text-foreground/70">Name</label>
-              <input data-testid="contact-name" required value={form.name} onChange={update("name")}
+              <input data-testid="contact-name" name="from_name" required value={form.from_name} onChange={update("from_name")}
                      className="mt-1 w-full bg-background border border-border rounded-sm px-3 py-2.5 text-foreground focus:outline-none focus:border-[hsl(var(--primary))]" />
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-widest text-foreground/70">Email</label>
-              <input data-testid="contact-email" type="email" required value={form.email} onChange={update("email")}
+              <input data-testid="contact-email" name="reply_to" type="email" required value={form.reply_to} onChange={update("reply_to")}
                      className="mt-1 w-full bg-background border border-border rounded-sm px-3 py-2.5 text-foreground focus:outline-none focus:border-[hsl(var(--primary))]" />
             </div>
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-foreground/70">Subject</label>
-            <input data-testid="contact-subject" value={form.subject} onChange={update("subject")}
+            <input data-testid="contact-subject" name="subject" value={form.subject} onChange={update("subject")}
                    className="mt-1 w-full bg-background border border-border rounded-sm px-3 py-2.5 text-foreground focus:outline-none focus:border-[hsl(var(--primary))]" />
           </div>
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-foreground/70">Message</label>
-            <textarea data-testid="contact-message" required rows={5} value={form.message} onChange={update("message")}
+            <textarea data-testid="contact-message" name="message" required rows={5} value={form.message} onChange={update("message")}
                       className="mt-1 w-full bg-background border border-border rounded-sm px-3 py-2.5 text-foreground focus:outline-none focus:border-[hsl(var(--primary))]" />
           </div>
           <button type="submit" disabled={loading} className="pill-btn !w-full justify-center" data-testid="contact-submit">
             {loading ? <Loader2 size={18} className="animate-spin"/> : <Send size={16}/>} {loading ? "Sending…" : "Send message"}
           </button>
-          <p className="text-[11px] text-muted-foreground">We respect your inbox. No spam, ever.</p>
+          <p className="text-[11px] text-muted-foreground">Sent securely via EmailJS to juliantees2026@gmail.com. No spam, ever.</p>
         </form>
       </div>
     </section>

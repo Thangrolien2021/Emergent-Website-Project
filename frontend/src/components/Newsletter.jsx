@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import axios from "axios";
+import emailjs from "@emailjs/browser";
 import { toast } from "sonner";
 import { Send } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const SERVICE_ID  = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY  = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
@@ -12,13 +14,29 @@ export default function Newsletter() {
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
+    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+      toast.error("Email service not configured. Add EmailJS keys to frontend/.env.");
+      return;
+    }
     setLoading(true);
     try {
-      await axios.post(`${API}/newsletter`, { email });
+      await emailjs.send(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        {
+          from_name: "Newsletter signup",
+          reply_to:  email,
+          subject:   "New newsletter subscriber",
+          message:   `${email} just subscribed to JulianTees newsletter.`,
+          to_email:  "juliantees2026@gmail.com",
+          form_type: "Newsletter",
+        },
+        { publicKey: PUBLIC_KEY }
+      );
       toast.success("You're in. First drop incoming.");
       setEmail("");
-    } catch {
-      toast.error("Couldn't subscribe right now.");
+    } catch (err) {
+      toast.error(err?.text || "Couldn't subscribe right now.");
     } finally { setLoading(false); }
   };
 
