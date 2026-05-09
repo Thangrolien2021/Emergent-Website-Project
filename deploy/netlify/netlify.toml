@@ -1,0 +1,17 @@
+# Build settings for Netlify
+[build]
+  base    = "frontend"
+  command = "yarn build"
+  publish = "build"
+
+# Forward our /api/contact form post to the Netlify Function
+[[redirects]]
+  from   = "/api/contact"
+  to     = "/.netlify/functions/contact"
+  status = 200
+
+# SPA fallback so React Router works
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
