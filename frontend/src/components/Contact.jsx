@@ -15,27 +15,53 @@ export default function Contact() {
   const update = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
   const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.from_name || !form.reply_to || !form.message) {
-      toast.error("Please fill name, email and message.");
-      return;
-    }
-    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-      toast.error("Email service not configured. Add EmailJS keys to frontend/.env.");
-      return;
-    }
-    setLoading(true);
-    try {
-      await emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, formRef.current, { publicKey: PUBLIC_KEY });
-      toast.success("Message sent. We'll be in touch.");
-      setForm({ from_name:"", reply_to:"", subject:"", message:"" });
-    } catch (err) {
-      const msg = err?.text || err?.message || "Failed to send. Please try again.";
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+
+  if (!form.from_name || !form.reply_to || !form.message) {
+    toast.error("Please fill name, email and message.");
+    return;
+  }
+
+  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+    toast.error("Email service not configured.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    await emailjs.sendForm(
+      SERVICE_ID,
+      TEMPLATE_ID,
+      formRef.current,
+      PUBLIC_KEY
+    );
+
+    toast.success("Message sent successfully!");
+
+    setForm({
+      from_name: "",
+      reply_to: "",
+      subject: "",
+      message: ""
+    });
+
+    formRef.current.reset();
+
+  } catch (err) {
+    console.error(err);
+
+    const msg =
+      err?.text ||
+      err?.message ||
+      "Failed to send message.";
+
+    toast.error(msg);
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <section id="contact" className="py-20 lg:py-28 border-t border-border bg-card/30" data-testid="contact-section">
