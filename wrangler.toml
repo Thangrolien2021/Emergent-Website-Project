@@ -1,0 +1,21 @@
+name = "juliantees-website"
+compatibility_date = "2026-02-09"
+pages_build_output_dir = "frontend/build"
+
+# Cloudflare R2 bucket binding (create in dashboard: R2 → Create bucket → "juliantees-designs")
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "juliantees-designs"
+
+# Cloudflare D1 database binding (create in dashboard: D1 → Create database → "juliantees-designs-db")
+[[d1_databases]]
+binding = "DB"
+database_name = "juliantees-designs-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Secrets / environment variables — set in Cloudflare Pages dashboard:
+#   Settings → Variables and Secrets:
+#     ADMIN_EMAIL       = juliantees2026@gmail.com
+#     ADMIN_PASSWORD    = (choose a strong password — see DEPLOYMENT.md)
+#     JWT_SECRET        = (generate via:  openssl rand -hex 32)
+#     R2_PUBLIC_URL     = https://pub-<hash>.r2.dev   (or your custom CDN domain)

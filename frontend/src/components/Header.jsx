@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X, ShoppingBag, Search } from "lucide-react";
 import { Logo } from "./Logo";
 import { CATEGORIES } from "../data/products";
 
 const NAV = [
-  { label: "Shop", href: "#shop" },
-  { label: "Categories", href: "#categories" },
-  { label: "Lookbook", href: "#lookbook" },
-  { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "Shop",      href: "#shop",     internal: true },
+  { label: "Drops",     href: "/drops",    internal: false, badge: "New" },
+  { label: "Categories",href: "#categories", internal: true },
+  { label: "Lookbook",  href: "#lookbook", internal: true },
+  { label: "About",     href: "#about",    internal: true },
+  { label: "Contact",   href: "#contact",  internal: true },
 ];
 
 export default function Header() {
@@ -69,10 +71,18 @@ export default function Header() {
           <div className="lg:hidden border-t border-border bg-background" data-testid="mobile-nav">
             <div className="px-5 py-6 flex flex-col gap-4">
               {NAV.map(n => (
-                <a key={n.href} href={n.href} onClick={() => setOpen(false)}
-                   className="font-display text-3xl text-foreground hover:text-[hsl(var(--primary))]" data-testid={`mobile-nav-${n.label.toLowerCase()}`}>
-                  {n.label}
-                </a>
+                n.internal ? (
+                  <a key={n.href} href={n.href} onClick={() => setOpen(false)}
+                     className="font-display text-3xl text-foreground hover:text-[hsl(var(--primary))]" data-testid={`mobile-nav-${n.label.toLowerCase()}`}>
+                    {n.label}
+                  </a>
+                ) : (
+                  <Link key={n.href} to={n.href} onClick={() => setOpen(false)}
+                     className="font-display text-3xl text-foreground hover:text-[hsl(var(--primary))] inline-flex items-center gap-2" data-testid={`mobile-nav-${n.label.toLowerCase()}`}>
+                    {n.label}
+                    {n.badge && <span className="text-[10px] font-black tracking-widest bg-[hsl(var(--primary))] text-white px-2 py-0.5 rounded-full">{n.badge}</span>}
+                  </Link>
+                )
               ))}
               <div className="pt-4 border-t border-border flex flex-wrap gap-2">
                 {CATEGORIES.slice(1).map(c => (

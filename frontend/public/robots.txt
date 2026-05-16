@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
 
-Sitemap: https://juliantees.com/sitemap.xml
+Sitemap: https://juliantees.shop/sitemap.xml
